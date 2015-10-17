@@ -19,7 +19,7 @@ var DB = new MySQL(config);
 
 var Scraper = function() {
 	var self = this;
-	var entry = "https://cs.wikipedia.org/wiki/Kategorie:Seznamy_katastr%C3%A1ln%C3%ADch_%C3%BAzem%C3%AD";
+	var entry = "https://cs.wikipedia.org/wiki/Seznam_katastr%C3%A1ln%C3%ADch_%C3%BAzem%C3%AD_Prahy_podle_po%C4%8Dtu_obyvatel";
 	var entryBase = "https://cs.wikipedia.org";
 
 	function ConvertDMSToDD(degrees, minutes, seconds, direction) {
@@ -41,6 +41,7 @@ var Scraper = function() {
 	this.fetchDetail = function(info, done) {
 		var link = entryBase + info.link;
 		console.log(' >>> ', link);
+
 		DB.get('id', 'population', 'link = ?', info.link, function(err, res) {
 			if(err) throw err;
 
@@ -51,7 +52,6 @@ var Scraper = function() {
 				console.log(' << parsing', link);
 				if(err) throw err;
 				var $ = cheerio.load(body);
-				// console.log(body);
 				$(".infobox tr").each(function(id, line) {
 					var label = $(this).find('td:nth-child(1)').text();
 					var value = $(this).find('td:nth-child(2)').text();
@@ -85,9 +85,7 @@ var Scraper = function() {
 					}
 
 				});
-
-				// console.log(info);
-
+	
 				if(info["population"] || info["population"] == 0)
 					self.importDbData(info, done);
 				else
@@ -98,63 +96,38 @@ var Scraper = function() {
 		});
 	};
 
-	this.fetchDetailLink = function(link, done) {
-		if(!link) return done(null);
-		link = entryBase + link;
-
-		console.log(' >> ', link);
-		request.get(link, function(err, html, body) {
-			if(err) throw err;
-			var $ = cheerio.load(body);
-			var info = [];
-
-			var first = true;
-			$(".wikitable tr").each(function(id, row) {
-				if(first) {
-					first = false;
-					return;
-				}	
-
-				var name = $(this).find('td:nth-child(1)>a').text();
-				var linkDetail = $(this).find('td:nth-child(1)>a').attr('href');
-				var size = $(this).find('td:nth-child(4)').text();
-				if(linkDetail) 
-					info.push({link: linkDetail, size: size, name: name});
-			});
-
-			if(LIMIT)
-				info = info.slice(0, LIMIT);
-
-			async.mapLimit(info, 5, self.fetchDetail, done);
+	this.fetchDetails = function(list, done) {
+		async.eachLimit(list, 5, self.fetchDetail, function(err) {
+			throw err;
 		});
-	};
-
-	this.fetchDetailLinks = function(list) {
-		if(LIMIT)
-			list = list.slice(0, LIMIT);
-
-		console.log('Fetching details for #', list.length, 'items');
-		async.mapLimit(list, 5, self.fetchDetailLink, function(err, res) {
-			if(err) throw err;
-
-			var merged = [].concat.apply([], res);
-
-			console.log('END with', merged.length, 'data');
-		});
-	};
+	}
 
 	this.processList = function(err, html, body) {
 		if(err) throw err;
 
 		var list = [];
 		var $ = cheerio.load(body);
+		var first = true;
 
-		$(".mw-category a").each(function(id, region) {
-			list.push(region.attribs.href);
+		$(".wikitable tr").each(function(id, row) {
+			if(first) {
+				first = false;
+				return;
+			}
+			
+			var info = {
+				name: $(this).find('td:nth-child(2) a').text(),
+				link: $(this).find('td:nth-child(2) a').attr("href"),
+				population: $(this).find('td:nth-child(3)').text().replace(/[^0-9]/g, ''),
+				size:$(this).find('td:nth-child(5)').text() / 100,
+			};
+
+			list.push(info);
+			// list.push(region.attribs.href);
 		});
 
 
-		self.fetchDetailLinks(list);
+		self.fetchDetails(list);
 	};
 
 	// DB.delete('population', '1=1', function() {

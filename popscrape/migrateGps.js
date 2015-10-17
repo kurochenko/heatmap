@@ -16,22 +16,34 @@ var config = {
 var LIMIT = false;
 var DB = new MySQL(config);
 
+function ConvertDMSToDD(degrees, minutes, seconds, direction) {
+    var dd = degrees + minutes/60 + seconds/(60*60);
 
-DB.getData('*', 'population', '1=1', null, 'id', 'asc', 2, function(err, res) {
-	for(var i in res) {
-		var row = res[i];
+    if (direction == "S" || direction == "W") {
+        dd = dd * -1;
+    } // Don't do anything for N or E
+    return dd;
+}
 
-		var l = row["latLng"].replace(/[.,sšvd ]/g, "").split('″');
-		console.log(l);
+DB.getData('latLng, id', 'population', 'latLng IS NOT NULL ', null, 'id', 'asc', function(err, res) {
 
+	async.each(res, function(row, done) {
+		console.log('Updating row ', row['id']);
+		var info = {};
+		var l = row["latLng"].replace(/[\n.sšvd ]/g, "").split(',');
 
-		continue;
-		var lat = l[0].split(' ')[0].replace(/[°′″]/g, '-').split('-');
-		var lng = l[1].split(' ')[1].replace(/[°′″]/g, '-').split('-');
+		// console.log(row["latLng"], l);
 
-		info["lat"] = ConvertDMSToDD(Number(lat[0]), Number(lat[1]), Number(lat[2]), 'N');
-		info["lng"] = ConvertDMSToDD(Number(lng[0]), Number(lng[1]), Number(lng[2]), 'W');
-		info["latLng"] = value;
-	}
+		var lat = l[0].replace(/″/g, '').replace(/[°′]/g, '-').split('-');
+		var lng = l[1].replace(/″/g, '').replace(/[°′]/g, '-').split('-');
+			
 
+		info["lat"] = Math.abs(ConvertDMSToDD(Number(lat[0]), Number(lat[1]), Number(lat[2]), 'N'));
+		info["lng"] = Math.abs(ConvertDMSToDD(Number(lng[0]), Number(lng[1]), Number(lng[2]), 'E'));
+
+		DB.update('population', info, 'id = ?', row['id'], done);
+	}, function(err, res) {
+
+		console.log(err, res);
+	});
 });

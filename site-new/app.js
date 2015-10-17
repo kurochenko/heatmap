@@ -52,17 +52,36 @@ function changeOpacity() {
   heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
 }
 
+
+function getModifiedLatLng(lat, lng, size) {
+  var d = Math.sqrt(size);
+
+  var rand = Math.floor(Math.random() * d * 10) + 0;
+  console.log(rand);
+
+  return [lat, lng];
+
+}
 // Heatmap data: 500 Points
 function getPoints(done) {
   console.log('Fetch pop data');
   fetchPopulationData(function(res) {
+    var max = Math.max.apply(Math,res.map(function(o){return o[2];}))
+    console.log(max);
+    var maxItems = 10;
+    var rate = maxItems / max
+
     var points = [];
 
     console.log('Create points');
     $(res).each(function(id, item) {
-      console.log(item);
-      for(var i = 0; i < Math.max(item[2], 10); i++) {
-        points.push(new google.maps.LatLng(item[0], item[1]));
+
+      var count = item[2] * rate;
+      // count = Math.max(1, count);
+
+      for(var i = 0; i < count; i++) {
+
+        points.push(new google.maps.LatLng.apply(this, getModifiedLatLng(item[0], item[1], item[3])));
       }
     });
 
