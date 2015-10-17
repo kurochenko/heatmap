@@ -58,7 +58,7 @@ public abstract class AbstractImporter {
         BufferedReader reader = new BufferedReader(new InputStreamReader(objectData));
 
 
-        String dbUrl = "jdbc:mysql://timetables-cluster.cluster-c3wf97boae1g.eu-west-1.rds.amazonaws.com:3306/timetables";
+        String dbUrl = "jdbc:mysql://timetables-cluster.cluster-c3wf97boae1g.eu-west-1.rds.amazonaws.com:3306/timetables?useUnicode=true&characterEncoding=utf-8";
         String dbClass = "com.mysql.jdbc.Driver";
         String username = "heatmap";
         String password = "heatmap007";
