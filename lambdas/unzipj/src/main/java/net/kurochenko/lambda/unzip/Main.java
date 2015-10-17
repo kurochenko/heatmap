@@ -55,7 +55,7 @@ public class Main {
     }
 
     private static String unzippedFileName(String parentName, String fileName) {
-        return parentName.replace(".zip","") + fileName;
+        return parentName.replace(".zip","") + "__" + fileName;
     }
 
     public S3Event handler(S3Event event, Context context) {
