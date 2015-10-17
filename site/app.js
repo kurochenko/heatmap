@@ -16,7 +16,7 @@ function getPoints(done) {
             points.data.push({
                     "lat": item[0],
                     "lng": item[1],
-                    "count": item[2]
+                    "count": item[2]/item[3]
                 }
             );
         });
