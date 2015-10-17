@@ -11,11 +11,11 @@ import java.sql.SQLException;
 public class StopTimes extends AbstractImporter {
 
     @Override
-    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings) throws SQLException {
-        ps.setInt(1, Integer.parseInt(strings[0]));
+    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings, String idPrefix) throws SQLException {
+        ps.setString(1, toId(idPrefix, strings[0]));
         ps.setString(2, strings[1]);
         ps.setString(3, strings[2]);
-        ps.setInt(4, Integer.parseInt(strings[3]));
+        ps.setString(4, toId(idPrefix, strings[3]));
         ps.setInt(5, Integer.parseInt(strings[4]));
         ps.setInt(6, Integer.parseInt(strings[5]));
         ps.setInt(7, Integer.parseInt(strings[6]));

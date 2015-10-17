@@ -11,8 +11,8 @@ import java.sql.SQLException;
 public class Calendar extends AbstractImporter {
 
     @Override
-    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings) throws SQLException {
-        ps.setInt(1, Integer.parseInt(strings[0]));
+    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings, String idPrefix) throws SQLException {
+        ps.setString(1, toId(idPrefix, strings[0]));
         ps.setInt(2, Integer.parseInt(strings[1]));
         ps.setInt(3, Integer.parseInt(strings[2]));
         ps.setInt(4, Integer.parseInt(strings[3]));

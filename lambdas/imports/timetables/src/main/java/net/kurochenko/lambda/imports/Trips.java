@@ -11,9 +11,9 @@ import java.sql.SQLException;
 public class Trips extends AbstractImporter {
 
     @Override
-    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings) throws SQLException {
-        ps.setInt(1, Integer.parseInt(strings[0]));
-        ps.setInt(2, Integer.parseInt(strings[2]));
+    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings, String idPrefix) throws SQLException {
+        ps.setString(1, toId(idPrefix, strings[0]));
+        ps.setString(2, toId(idPrefix, strings[2]));
         ps.setString(3, strings[3]);
         ps.setInt(4, Integer.parseInt(strings[4]));
         ps.setInt(5, Integer.parseInt(strings[5]));

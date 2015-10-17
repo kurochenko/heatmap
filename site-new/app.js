@@ -1,5 +1,6 @@
 var map, heatmap;
 var populationDataUrl = "https://9vlnawiu1k.execute-api.us-west-2.amazonaws.com/prod/population";
+var populationDataUrl = "https://9s7jbp64w4.execute-api.eu-west-1.amazonaws.com/prod/stops?trlon=14.6&trlat=50.1&bllon=14.2&bllat=50";
 
 function fetchPopulationData(done) {
   $.get(populationDataUrl, done);
@@ -56,20 +57,23 @@ function changeOpacity() {
 function getModifiedLatLng(lat, lng, size) {
   var d = Math.sqrt(size);
 
-  var rand = Math.floor(Math.random() * d * 10) + 0;
+  var rand = Math.floor(Math.random() * d * 10) + 0 - d*5;
   console.log(rand);
 
-  return [lat, lng];
+  return [lat+ rand/100, lng+rand/100];
 
 }
 // Heatmap data: 500 Points
 function getPoints(done) {
   console.log('Fetch pop data');
   fetchPopulationData(function(res) {
+    console.log(res);
+    return;
+    
     var max = Math.max.apply(Math,res.map(function(o){return o[2];}))
     console.log(max);
-    var maxItems = 10;
-    var rate = maxItems / max
+    var maxItems = 1000;
+    var rate = maxItems / max;
 
     var points = [];
 
@@ -80,8 +84,8 @@ function getPoints(done) {
       // count = Math.max(1, count);
 
       for(var i = 0; i < count; i++) {
-
-        points.push(new google.maps.LatLng.apply(this, getModifiedLatLng(item[0], item[1], item[3])));
+        var p = getModifiedLatLng(item[0], item[1], item[3]);
+        points.push(new google.maps.LatLng(p[0], p[1]));
       }
     });
 
