@@ -73,12 +73,14 @@ var Scraper = function() {
 					}
 
 					if(label == 'zeměpisné souřadnice:') {
-						var l = value.split(',');
-						var lat = l[0].split(' ')[0].replace(/[°′″]/g, '-').split('-');
-						var lng = l[1].split(' ')[1].replace(/[°′″]/g, '-').split('-');
+						var l = value.replace(/[\n.sšvd ]/g, "").split(',');
 
-						info["lat"] = ConvertDMSToDD(Number(lat[0]), Number(lat[1]), Number(lat[2]), 'N');
-						info["lng"] = ConvertDMSToDD(Number(lng[0]), Number(lng[1]), Number(lng[2]), 'W');
+						var lat = l[0].replace(/″/g, '').replace(/[°′]/g, '-').split('-');
+						var lng = l[1].replace(/″/g, '').replace(/[°′]/g, '-').split('-');
+
+						info["lat"] = Math.abs(ConvertDMSToDD(Number(lat[0]), Number(lat[1]), Number(lat[2]), 'N'));
+						info["lng"] = Math.abs(ConvertDMSToDD(Number(lng[0]), Number(lng[1]), Number(lng[2]), 'E'));
+
 						info["latLng"] = value;
 					}
 
