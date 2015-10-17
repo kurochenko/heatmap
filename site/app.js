@@ -1,124 +1,97 @@
-var map, heatmap;
+var map;
+var populationDataUrl = "https://9vlnawiu1k.execute-api.us-west-2.amazonaws.com/prod/population";
+
+var northernmostPointLat = 51.0320;
+var southernmostPointLat = 48.3306;
+var westernmostPointLng = 12.0526;
+var easternmostPointLng = 18.5133;
+
+var c = 1.70;
+var numberOfWidthAreas = Math.ceil(16 * c);
+var numberOfHeightAreas = Math.ceil(10 * c);
+
+var countryHeight = northernmostPointLat - southernmostPointLat;
+var countryWidth = easternmostPointLng - westernmostPointLng;
+
+var widthOfArea = countryWidth / numberOfWidthAreas;
+var heightOfArea = countryHeight / numberOfHeightAreas;
+
+function fetchPopulationData(done) {
+    $.get(populationDataUrl, done);
+}
+
+function getPoints(done) {
+    fetchPopulationData(function (res) {
+        var points = {
+            max: 1000,
+            data: []
+        };
+        $(res).each(function (id, item) {
+            var lat = Math.floor((item[0] - southernmostPointLat) / heightOfArea) * heightOfArea + (heightOfArea / 2) + southernmostPointLat;
+            var lng = Math.floor((item[1] - westernmostPointLng) / widthOfArea) * widthOfArea + (widthOfArea / 2) + westernmostPointLng;
+            var point = {
+                "lat": lat,
+                "lng": lng,
+                "count": item[2] / item[3]
+            };
+            var existingPoint = pointExist(points, point.lat, point.lng);
+            if (existingPoint !== null) {
+                existingPoint.count += point.count;
+            }
+            else {
+                points.data.push(point);
+            }
+        });
+
+        done(points);
+    });
+}
 
 function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 6,
-    center: {lat: 50.075538, lng: 14.437800},
-    mapTypeId: google.maps.MapTypeId.SATELLITE
-  });
+    // map center
+    var myLatlng = new google.maps.LatLng(49.7500, 15.7500);
+    // map options,
+    var myOptions = {
+        zoom: 3,
+        center: myLatlng
+    };
+    // standard map
+    map = new google.maps.Map(document.getElementById("map-canvas"), myOptions);
 
-  heatmap = new google.maps.visualization.HeatmapLayer({
-    data: getPoints(),
-    map: map
-  });
-}
-
-function toggleHeatmap() {
-  heatmap.setMap(heatmap.getMap() ? null : map);
-}
-
-function changeGradient() {
-  var gradient = [
-    'rgba(0, 255, 255, 0)',
-    'rgba(0, 255, 255, 1)',
-    'rgba(0, 191, 255, 1)',
-    'rgba(0, 127, 255, 1)',
-    'rgba(0, 63, 255, 1)',
-    'rgba(0, 0, 255, 1)',
-    'rgba(0, 0, 223, 1)',
-    'rgba(0, 0, 191, 1)',
-    'rgba(0, 0, 159, 1)',
-    'rgba(0, 0, 127, 1)',
-    'rgba(63, 0, 91, 1)',
-    'rgba(127, 0, 63, 1)',
-    'rgba(191, 0, 31, 1)',
-    'rgba(255, 0, 0, 1)'
-  ]
-  heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
-}
-
-function changeRadius() {
-  heatmap.set('radius', heatmap.get('radius') ? null : 200);
-}
-
-function changeOpacity() {
-  heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
-}
-
-function getPoints() {
-
-  var input = [
-    [50.075538, 14.437800, 10],
-    [50.076091, 14.43037, 20]
-  ];
-
-  var points = [];
-
-  points = points.concat(getHeatPoint(50.0833, 14.4167, 496, 1247000)); // Prague
-  points = points.concat(getHeatPoint(49.2000, 16.6167, 230.2, 378327)); // Brno
-  points = points.concat(getHeatPoint(50.0386, 15.7792, 77.71, 89552)); // Pardubice
-  for (var i = 0; i < input.length; i++) {
-    points.push({location: new google.maps.LatLng(input[i][0], input[i][1]), weight: input[i][2]});
-  }
-
-  lat = 50.076091;
-  lng = 14.43037;
-  for (var i = 0; i < 50; i++) {
-    points.push(new google.maps.LatLng(lat, lng));
-  }
-
-  return points;
-}
-
-function getHeatPoint(lat, lng, area, population) {
-    var points = [];
-    var radius = Math.sqrt(area) / 2;
-
-    var latRightBorder = lat + kmToLat(radius);
-    var lngRightBorder = lng + kmToLng(radius, latRightBorder);
-
-    var latLeftBorder = lat - kmToLat(radius);
-    var lngLeftBorder = lng - kmToLng(radius, latLeftBorder);
-
-    for (var i = 0; i < population / 1000; i++) {
-        points.push(new google.maps.LatLng(lat, lng));
-        points.push(new google.maps.LatLng(latRightBorder, lngRightBorder));
-        points.push(new google.maps.LatLng(latLeftBorder, lngLeftBorder));
-
-        var latToAdd;
-        var lngToAdd;
-
-        var R1 = Math.floor((Math.random() * radius) - radius);
-        if (R1 > 0) {
-            latToAdd = lat + kmToLat(R1);
+    // heatmap layer
+    heatmap = new HeatmapOverlay(map,
+        {
+            // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+            "radius": 0.5,
+            "maxOpacity": 1,
+            // scales the radius based on map zoom
+            "scaleRadius": true,
+            // if set to false the heatmap uses the global maximum for colorization
+            // if activated: uses the data maximum within the current map boundaries
+            //   (there will always be a red spot with useLocalExtremas true)
+            "useLocalExtrema": true,
+            // which field name in your data represents the latitude - default "lat"
+            latField: 'lat',
+            // which field name in your data represents the longitude - default "lng"
+            lngField: 'lng',
+            // which field name in your data represents the data value - default "value"
+            valueField: 'count'
         }
-        else {
-            latToAdd = lat - kmToLat(Math.abs(R1));
+    );
+
+    getPoints(function (data) {
+        heatmap.setData(data);
+    });
+}
+
+function pointExist(d, lat, lng) {
+    var point = null;
+    d.data.forEach(function (entry) {
+        if (entry.lat == lat && entry.lng == lng) {
+            point = entry;
         }
 
-        var R2 = Math.floor((Math.random() * radius) - radius);
-        if (R2 > 0) {
-            lngToAdd = lng + kmToLng(R2);
-        }
-        else {
-            lngToAdd = lng - kmToLng(Math.abs(R2), latToAdd);
-        }
+    });
 
-        points.push(
-            new google.maps.LatLng(
-                latToAdd,
-                lngToAdd
-            )
-        );
-    }
-
-    return points;
-}
-
-function kmToLat(km) {
-    return km / 110.574;
-}
-
-function kmToLng(km, lat) {
-    return km / (111.320 * Math.cos(lat));
+    return point;
 }
