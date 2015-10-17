@@ -39,7 +39,7 @@ exports.handler = function(e, context) {
 				})
 			}
 
-			context.done(null, res);
+			context.done(null, res.map(function(row){ return [row.lat, row.lon, row.arrivalCnt]}));
 		});
 
 		connection.end(function(err) {
