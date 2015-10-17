@@ -38,7 +38,7 @@ function changeGradient() {
 }
 
 function changeRadius() {
-  heatmap.set('radius', heatmap.get('radius') ? null : 20);
+  heatmap.set('radius', heatmap.get('radius') ? null : 200);
 }
 
 function changeOpacity() {
@@ -47,11 +47,25 @@ function changeOpacity() {
 
 function getPoints() {
 
+  var input = [
+    [50.075538, 14.437800, 10],
+    [50.076091, 14.43037, 20]
+  ];
+
   var points = [];
 
   points = points.concat(getHeatPoint(50.0833, 14.4167, 496, 1247000)); // Prague
   points = points.concat(getHeatPoint(49.2000, 16.6167, 230.2, 378327)); // Brno
   points = points.concat(getHeatPoint(50.0386, 15.7792, 77.71, 89552)); // Pardubice
+  for (var i = 0; i < input.length; i++) {
+    points.push({location: new google.maps.LatLng(input[i][0], input[i][1]), weight: input[i][2]});
+  }
+
+  lat = 50.076091;
+  lng = 14.43037;
+  for (var i = 0; i < 50; i++) {
+    points.push(new google.maps.LatLng(lat, lng));
+  }
 
   return points;
 }
