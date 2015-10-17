@@ -1,21 +1,6 @@
 var map;
 var populationDataUrl = "https://9vlnawiu1k.execute-api.us-west-2.amazonaws.com/prod/population";
 
-var northernmostPointLat = 51.0320;
-var southernmostPointLat = 48.3306;
-var westernmostPointLng = 12.0526;
-var easternmostPointLng = 18.5133;
-
-var c = 1.70;
-var numberOfWidthAreas = Math.ceil(16 * c);
-var numberOfHeightAreas = Math.ceil(10 * c);
-
-var countryHeight = northernmostPointLat - southernmostPointLat;
-var countryWidth = easternmostPointLng - westernmostPointLng;
-
-var widthOfArea = countryWidth / numberOfWidthAreas;
-var heightOfArea = countryHeight / numberOfHeightAreas;
-
 function fetchPopulationData(done) {
     $.get(populationDataUrl, done);
 }
@@ -27,20 +12,13 @@ function getPoints(done) {
             data: []
         };
         $(res).each(function (id, item) {
-            var lat = Math.floor((item[0] - southernmostPointLat) / heightOfArea) * heightOfArea + (heightOfArea / 2) + southernmostPointLat;
-            var lng = Math.floor((item[1] - westernmostPointLng) / widthOfArea) * widthOfArea + (widthOfArea / 2) + westernmostPointLng;
             var point = {
-                "lat": lat,
-                "lng": lng,
+                "lat": item[0],
+                "lng": item[1],
                 "count": item[2] / item[3]
             };
-            var existingPoint = pointExist(points, point.lat, point.lng);
-            if (existingPoint !== null) {
-                existingPoint.count += point.count;
-            }
-            else {
-                points.data.push(point);
-            }
+
+            points.data.push(point);
         });
 
         done(points);
@@ -62,10 +40,10 @@ function initMap() {
     heatmap = new HeatmapOverlay(map,
         {
             // radius should be small ONLY if scaleRadius is true (or small radius is intended)
-            "radius": 0.5,
+            "radius": 50,
             "maxOpacity": 1,
             // scales the radius based on map zoom
-            "scaleRadius": true,
+            "scaleRadius": false,
             // if set to false the heatmap uses the global maximum for colorization
             // if activated: uses the data maximum within the current map boundaries
             //   (there will always be a red spot with useLocalExtremas true)
@@ -75,23 +53,19 @@ function initMap() {
             // which field name in your data represents the longitude - default "lng"
             lngField: 'lng',
             // which field name in your data represents the data value - default "value"
-            valueField: 'count'
+            valueField: 'count',
+            gradient: {
+                // enter n keys between 0 and 1 here
+                // for gradient color customization
+                '.15': 'MidnightBlue',
+                '.35': 'SteelBlue',
+                '.65': 'Blue',
+                '.95': 'MediumSlateBlue'
+            }
         }
     );
 
     getPoints(function (data) {
         heatmap.setData(data);
     });
-}
-
-function pointExist(d, lat, lng) {
-    var point = null;
-    d.data.forEach(function (entry) {
-        if (entry.lat == lat && entry.lng == lng) {
-            point = entry;
-        }
-
-    });
-
-    return point;
 }
