@@ -5,7 +5,7 @@ function init() {
     var myLatlng = new google.maps.LatLng(49.7500, 15.7500);
     // map options,
     var myOptions = {
-        zoom: 5,
+        zoom: 7,
         center: myLatlng
     };
     // standard map
@@ -21,7 +21,6 @@ function getStopsUrl(trlon, trlat, bllon, bllat) {
 }
 
 function fetchStopsData(done) {
-    // $.get(getStopsUrl(16.7, 49.25, 16.5, 49.1), done); // CR
     $.get(getStopsUrl(18.55, 50.96, 12.15, 48.6), done); // CR
     // $.get(getStopsUrl(14.6, 50.1, 14.2, 50), done); Prague
 }
@@ -29,18 +28,18 @@ function fetchStopsData(done) {
 function getStopsPoints(done) {
     fetchStopsData(function (res) {
         var points = {
-            max: 100,
+            max: 1000,
             data: []
         };
 
         $(res).each(function (id, item) {
             points.data.push({
-                "lat": item.lat,
-                "lng": item.lon,
+                "lat": item[0],
+                "lng": item[1],
                 // "count": Math.floor((Math.random() * 50) + 1)
                 "count": item.arrivalCnt
             });
-            console.log(points);
+            // console.log(points);
         });
 
         // console.log(points);
@@ -75,35 +74,19 @@ function initStopsMap(map) {
         var zoom = map.getZoom();
         console.log('zoom: ' + zoom);
         
-        if (zoom < 8) {
-            mapConfig.radius = 5;
-            heatmap.update();   
-        } 
-
-        if (zoom >= 8 && zoom < 10) {
-            mapConfig.radius = 7;
-            heatmap.update();   
+        if (zoom > 11) {
+            mapConfig.radius = zoom + 2;    
+        } else {
+            mapConfig.radius = zoom;
         }
-
-        if (zoom >=10 && zoom < 11) {
-            mapConfig.radius = 10;
-            heatmap.update();
-        }
-
-        if (zoom >= 11 && zoom < 12) {
-            mapConfig.radius = 15;
-            heatmap.update();
-        }
-
-        if (zoom > 12) {
-            mapConfig.radius = 30;
-            heatmap.update();
-        }
+        
+        heatmap.update();   
+        
         console.log('radius: ' + heatmap.cfg.radius);
-        // heatmap.configure({'radius': map.getZoom()});
     });
 
     getStopsPoints(function (data) {
         heatmap.setData(data);
     });
 }
+
