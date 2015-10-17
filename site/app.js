@@ -38,7 +38,7 @@ function changeGradient() {
 }
 
 function changeRadius() {
-  heatmap.set('radius', heatmap.get('radius') ? null : 20);
+  heatmap.set('radius', heatmap.get('radius') ? null : 200);
 }
 
 function changeOpacity() {
@@ -48,19 +48,24 @@ function changeOpacity() {
 // Heatmap data: 500 Points
 function getPoints() {
 
+  var input = [
+    [50.075538, 14.437800, 10],
+    [50.076091, 14.43037, 20]
+  ];
+
   var points = [];
 
-  var lat = 50.075538; 
-  var lng = 14.437800;
-  for (var i = 0; i < 100; i++) {
-    points.push(new google.maps.LatLng(lat, lng));
-  }
-
-  lat = 50.076091;
-  lng = 14.43037;
-  for (var i = 0; i < 50; i++) {
-    points.push(new google.maps.LatLng(lat, lng));
+  for (var i = 0; i < input.length; i++) {
+    points.push({location: new google.maps.LatLng(input[i][0], input[i][1]), weight: input[i][2]});
   }
 
   return points;
 }
+
+
+
+
+
+
+
+
