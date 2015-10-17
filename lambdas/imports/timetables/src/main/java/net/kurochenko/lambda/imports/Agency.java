@@ -12,8 +12,8 @@ public class Agency extends AbstractImporter {
 
 
     @Override
-    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings) throws SQLException {
-        ps.setInt(1, Integer.parseInt(strings[0]));
+    protected PreparedStatement populateStatement(PreparedStatement ps, String[] strings, String idPrefix) throws SQLException {
+        ps.setString(1, toId(idPrefix, strings[0]));
         ps.setString(2, strings[1]);
         ps.setString(3, strings[2]);
         ps.setString(4, strings[3]);

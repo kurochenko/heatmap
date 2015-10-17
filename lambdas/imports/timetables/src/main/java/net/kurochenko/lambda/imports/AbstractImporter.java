@@ -33,12 +33,9 @@ public abstract class AbstractImporter {
     }
 
 
-    private static GetObjectRequest getRequestObject(S3EventNotification.S3EventNotificationRecord record) {
+    private static String getFileName(S3EventNotification.S3EventNotificationRecord record) {
         try {
-            return new GetObjectRequest(
-                    record.getS3().getBucket().getName(),
-                    URLDecoder.decode(record.getS3().getObject().getKey().replace('+', ' '), "UTF-8")
-            );
+            return URLDecoder.decode(record.getS3().getObject().getKey().replace('+', ' '), "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -51,7 +48,12 @@ public abstract class AbstractImporter {
         S3EventNotification.S3EventNotificationRecord record = event.getRecords().get(0);
         AmazonS3 s3Client = getAwsClient();
 
-        S3Object s3Object = s3Client.getObject(getRequestObject(record));
+        String bucket = record.getS3().getBucket().getName();
+        String fileName = getFileName(record);
+
+        String idPrefix = fileName.split("__")[0];
+
+        S3Object s3Object = s3Client.getObject(new GetObjectRequest(bucket, fileName));
 
 
         InputStream objectData = s3Object.getObjectContent();
@@ -79,12 +81,13 @@ public abstract class AbstractImporter {
                 System.out.println(String.join(" :: ", strings));
 
 
-                populateStatement(ps, strings);
+                populateStatement(ps, strings, idPrefix);
 
                 ps.addBatch();
 
                 if (i % 1000 == 0) {
                     ps.executeBatch();
+                    connection.commit();
                 }
                 i++;
 
@@ -110,8 +113,12 @@ public abstract class AbstractImporter {
         return event;
     }
 
-    protected abstract PreparedStatement populateStatement(PreparedStatement ps, String[] strings) throws SQLException;
+    protected abstract PreparedStatement populateStatement(PreparedStatement ps, String[] strings, String idPrefix) throws SQLException;
 
     protected abstract String getQuery();
+
+    protected String toId(String idPrefix, String part) {
+        return idPrefix + part;
+    }
 
 }
