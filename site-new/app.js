@@ -7,7 +7,7 @@ function fetchPopulationData(done) {
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 13,
+    zoom: 2,
     center: {lat: 50.075538, lng: 14.437800},
     mapTypeId: google.maps.MapTypeId.SATELLITE
   });
