@@ -26,7 +26,7 @@ exports.handler = function(e, context) {
 
 		var params = [trlat, bllat, trlon, bllon]
 
-		var q = 'SELECT s.stop_id, s.stop_name, s.stop_lat, s.stop_lon, COUNT(st.stop_id) as arrivalCnt FROM stops s JOIN stop_times st ON s.stop_id=st.stop_id WHERE (stop_lat <= ? AND stop_lat >= ?) AND (stop_lon <= ? AND stop_lat >= ?) GROUP BY st.stop_id;'
+		var q = 'SELECT * FROM stops_aggregated  WHERE (stop_lat <= ? AND stop_lat >= ?) AND (stop_lon <= ? AND stop_lat >= ?)'
 		var res = []
 		connection.query(q, params, function (error, results, fields) {
 			for (var i = 0; i < results.length; i++) {
