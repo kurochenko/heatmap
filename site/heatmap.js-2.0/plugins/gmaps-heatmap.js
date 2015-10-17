@@ -55,10 +55,11 @@ HeatmapOverlay.prototype.onAdd = function(){
 
   this.getPanes().overlayLayer.appendChild(this.container);
 
+  var thisHO = this;
   this.changeHandler = google.maps.event.addListener(
     this.map,
     'bounds_changed',
-    this.draw
+    function() {  return thisHO.draw(); }
   );
  
   if (!this.heatmap) {
