@@ -1,3 +1,4 @@
+var pointsStore = null;
 var map;
 var populationDataUrl = "https://9vlnawiu1k.execute-api.us-west-2.amazonaws.com/prod/population";
 
@@ -48,15 +49,20 @@ function getPoints(done) {
 }
 
 function initMap() {
-    // map center
-    var myLatlng = new google.maps.LatLng(49.7500, 15.7500);
-    // map options,
-    var myOptions = {
-        zoom: 3,
-        center: myLatlng
-    };
-    // standard map
-    map = new google.maps.Map(document.getElementById("map-canvas"), myOptions);
+    
+    if(!map) {
+
+        // map center
+        var myLatlng = new google.maps.LatLng(49.7500, 15.7500);
+        // map options,
+        var myOptions = {
+            zoom: 6,
+            center: myLatlng
+        };
+        // standard map
+        map = new google.maps.Map(document.getElementById("map-canvas"), myOptions);
+    }
+
 
     // heatmap layer
     heatmap = new HeatmapOverlay(map,
@@ -79,9 +85,14 @@ function initMap() {
         }
     );
 
-    getPoints(function (data) {
-        heatmap.setData(data);
-    });
+    if(!pointsStore)
+        getPoints(function (data) {
+            pointsStore = data;
+
+            heatmap.setData(data);
+        });
+    else
+        heatmap.setData(pointsStore);
 }
 
 function pointExist(d, lat, lng) {
@@ -95,3 +106,9 @@ function pointExist(d, lat, lng) {
 
     return point;
 }
+
+
+google.maps.event.addDomListener(window, 'load', initMap);
+google.maps.event.addDomListener(window, "resize", initMap);
+google.maps.event.addDomListener(window, "zoom", initMap);
+google.maps.event.addDomListener(window, "dragend", initMap);
