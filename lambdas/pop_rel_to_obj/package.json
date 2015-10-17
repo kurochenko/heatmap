@@ -1,0 +1,16 @@
+{
+  "name": "dbfetch",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jan Jůna <mail@janjuna.cz> (http://janjuna.cz/)",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^1.4.2",
+    "lodash": "^3.10.1",
+    "mysql": "^2.9.0"
+  }
+}
